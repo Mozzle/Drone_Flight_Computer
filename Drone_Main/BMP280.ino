@@ -1,3 +1,14 @@
+/*---------------------------------------------------------
+    
+    BMP280.ino
+    
+      This file is a driver for a BMP280 daughter-board 
+      module, communicating via I2C. This driver reads 
+      temperature and pressure data from the BMP280,
+      converts the data into usable units, and calculates
+      barometric altitude.
+
+---------------------------------------------------------*/
 
 int32_t temp_fine;
 
@@ -32,7 +43,6 @@ void BMP280_Begin() {
   Wire.write(0b00010000);         // Set standby time to 0.5ms, filter coefficient to 16x
   Wire.endTransmission();
 
-  delay(2);
   // Read the Calibration data
   Wire.beginTransmission(BMP280_I2C_ADDR);
   Wire.write(BMP280_CALIBRATION_REG);
@@ -217,7 +227,7 @@ float BMP280_ReadAltitude(float seaLevelhPa) {
   pressure /= 100;
   altitude = 44330 * (1.0 - pow(pressure / seaLevelhPa, 0.1903));
 
-  Serial.print("Altitude: "); Serial.println(altitude);
+  //Serial.print("Altitude: "); Serial.println(altitude);
   return altitude;
 
 }

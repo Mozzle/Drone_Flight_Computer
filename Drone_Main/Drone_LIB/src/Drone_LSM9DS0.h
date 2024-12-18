@@ -32,6 +32,7 @@
 #define LSM9DS0_OUT_Z_H_G           0x2D
 
 // X-Axis Acceleration Data
+#define LSM9DS0_OUT_ACCEL_BURST     0xA8
 #define LSM9DS0_OUT_X_L_A           0x28
 #define LSM9DS0_OUT_X_H_A           0x29
 
@@ -44,6 +45,7 @@
 #define LSM9DS0_OUT_Z_H_A           0x2D
 
 // X-Axis Magnetic data
+#define LSM9DS0_OUT_MAG_BURST       0x88
 #define LSM9DS0_OUT_X_L_M           0x08
 #define LSM9DS0_OUT_X_H_M           0x09
 
@@ -91,6 +93,6 @@ struct Pitch_Heading_Roll {
 };
 
 void LSM9DS0_Begin();
-struct LSM9DS0_GyroData LSM9DS0_ReadGyroscopeData();
-struct LSM9DS0_AccelData LSM9DS0_ReadAccelerometerData();
+void LSM9DS0_ReadGyroscopeData();
+void LSM9DS0_ReadAccelerometerData();
 
