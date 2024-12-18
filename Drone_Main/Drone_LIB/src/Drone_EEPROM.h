@@ -1,0 +1,11 @@
+// NV Memory size in bytes
+#define DRONE_MEM_SIZE 				96
+
+//Memory Address Locations
+#define MEM_ADDR_X_G_CALIBRATION_VAL	0
+#define MEM_ADDR_Y_G_CALIBRATION_VAL	4
+#define MEM_ADDR_Z_G_CALIBRATION_VAL	8
+
+#define MEM_ADDR_X_A_CALIBRATION_VAL	12
+#define MEM_ADDR_Y_A_CALIBRATION_VAL	16
+#define MEM_ADDR_Z_A_CALIBRATION_VAL	20
