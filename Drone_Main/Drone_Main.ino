@@ -42,17 +42,55 @@ void setup() {
 
 }
 
+/*--------------------------------------------------------------
+    
+    CORE0_PROCEDURE()
+    
+      Core 0 Interfaces with the receiver, sends PWM signals to
+      the Electronic Speed Controllers, handles vehicle mode,
+      and consumes/processes the data produced by Core 1 to 
+      calculate motor commands.
+
+      FILES IN THE SCOPE OF CORE 0:
+
+      Receiver.ino
+
+--------------------------------------------------------------*/
+
 void CORE0_PROCEDURE(void * pvParameters) {
-  // Core 0 Setup
+  // Core 0 Setup 
   setCpuFrequencyMhz(240);
   Receiver_Begin();
 
+  unsigned long us = 0;
   // Core 0 Superloop
   for (;;) {
+
+    Serial.println((micros() - us));
+    us = micros();
     updateReceiverData();
-    delay(10);
+    delay(1);
   }
 }
+
+
+/*--------------------------------------------------------------
+    
+    CORE1_PROCEDURE()
+    
+      Core 1 Interfaces with the Barometer, Thermometer,
+      Gyroscope, Accelerometer, Magnetometer, and GPS sensors
+      over I2C. Core 1 does much of the data processing to
+      convert sensor data into usable units and extrapolate
+      vehicle attitude and position.
+
+      FILES IN THE SCOPE OF CORE 1:
+
+      BMP280.ino
+      LSM9DS0.ino
+      EEPROM.ino
+
+--------------------------------------------------------------*/
 
 void CORE1_PROCEDURE(void * pvParameters) {
   // Core 1 Setup
@@ -66,12 +104,8 @@ void CORE1_PROCEDURE(void * pvParameters) {
 
   // Core 1 Superloop
   for(;;){
-
-    usLoopTime = micros();
-
+  
     Baro_Altitude = BMP280_ReadAltitude(1018.3); // Will likely need some way to load hPa for each flight
-    LSM9DS0_ReadMagnetometerData();
-    Serial.println((micros() - usLoopTime));
     LSM9DS0_ReadAccelerometerData();
     LSM9DS0_ReadGyroscopeData();
     LSM9DS0_CalculateFlightData();

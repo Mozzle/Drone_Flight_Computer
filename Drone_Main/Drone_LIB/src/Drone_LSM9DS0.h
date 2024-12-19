@@ -20,6 +20,7 @@
 #define LSM9DS0_INT1_CFG_G          0x30
 
 // X-Axis Angular Rate Data
+#define LSM9DS0_OUT_GYRO_BURST      0xA8
 #define LSM9DS0_OUT_X_L_G           0x28
 #define LSM9DS0_OUT_X_H_G           0x29
 
@@ -45,7 +46,7 @@
 #define LSM9DS0_OUT_Z_H_A           0x2D
 
 // X-Axis Magnetic data
-#define LSM9DS0_OUT_MAG_BURST       0x88
+#define LSM9DS0_OUT_MAG_BURST       0x88  // For burst reading magnetometer data
 #define LSM9DS0_OUT_X_L_M           0x08
 #define LSM9DS0_OUT_X_H_M           0x09
 

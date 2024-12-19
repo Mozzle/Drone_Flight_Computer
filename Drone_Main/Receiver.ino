@@ -64,7 +64,7 @@ unsigned long curTime = 0;                      /* Current time, in ms          
 
 ----------------------------------------------------------------------*/
 
-void CH1Interrupt() {
+void IRAM_ATTR CH1Interrupt() {
   if (digitalRead(CH1) == HIGH) {
     // start measuring
     CH1PulseBegin = micros();
@@ -75,7 +75,7 @@ void CH1Interrupt() {
     CH1NewPulseDurAvailable = true;
   }
 }
-void CH2Interrupt() {
+void IRAM_ATTR CH2Interrupt() {
   if (digitalRead(CH2) == HIGH) {
     // start measuring
     CH2PulseBegin = micros();
@@ -86,7 +86,7 @@ void CH2Interrupt() {
     CH2NewPulseDurAvailable = true;
   }
 }
-void CH3Interrupt() {
+void IRAM_ATTR CH3Interrupt() {
   if (digitalRead(CH3) == HIGH) {
     // start measuring
     CH3PulseBegin = micros();
@@ -97,7 +97,7 @@ void CH3Interrupt() {
     CH3NewPulseDurAvailable = true;
   }
 }
-void CH4Interrupt() {
+void IRAM_ATTR CH4Interrupt() {
   if (digitalRead(CH4) == HIGH) {
     // start measuring
     CH4PulseBegin = micros();
@@ -108,7 +108,7 @@ void CH4Interrupt() {
     CH4NewPulseDurAvailable = true;
   }
 }
-void CH5Interrupt() {
+void IRAM_ATTR CH5Interrupt() {
   if (digitalRead(CH5) == HIGH) {
     // start measuring
     CH5PulseBegin = micros();
@@ -119,7 +119,7 @@ void CH5Interrupt() {
     CH5NewPulseDurAvailable = true;
   }
 }
-void CH6Interrupt() {
+void IRAM_ATTR CH6Interrupt() {
   if (digitalRead(CH6) == HIGH) {
     // start measuring
     CH6PulseBegin = micros();
@@ -130,7 +130,7 @@ void CH6Interrupt() {
     CH6NewPulseDurAvailable = true;
   }
 }
-void CH7Interrupt() {
+void IRAM_ATTR CH7Interrupt() {
   if (digitalRead(CH7) == HIGH) {
     // start measuring
     CH7PulseBegin = micros();
@@ -141,7 +141,7 @@ void CH7Interrupt() {
     CH7NewPulseDurAvailable = true;
   }
 }
-void CH8Interrupt() {
+void IRAM_ATTR CH8Interrupt() {
   if (digitalRead(CH8) == HIGH) {
     // start measuring
     CH8PulseBegin = micros();
@@ -152,7 +152,7 @@ void CH8Interrupt() {
     CH8NewPulseDurAvailable = true;
   }
 }
-void CH9Interrupt() {
+void IRAM_ATTR CH9Interrupt() {
   if (digitalRead(CH9) == HIGH) {
     // start measuring
     CH9PulseBegin = micros();
@@ -163,7 +163,7 @@ void CH9Interrupt() {
     CH9NewPulseDurAvailable = true;
   }
 }
-void CH10Interrupt() {
+void IRAM_ATTR CH10Interrupt() {
   if (digitalRead(CH10) == HIGH) {
     // start measuring
     CH10PulseBegin = micros();

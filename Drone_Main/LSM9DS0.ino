@@ -50,20 +50,6 @@ void LSM9DS0_Begin() {
   Wire.write(LSM9DS0_CTRL_REG7_XM);
   Wire.write(0b00000000);
   Wire.endTransmission();
-
- /* Wire.beginTransmission(LSM9DS0_GYRO_I2C_ADDR);
-  Wire.write(LSM9DS0_CTRL_REG2_G);
-  Wire.write(0b00100011);
-  Wire.endTransmission(); */
-
-  // High pass filter is not engaged yet. Needs to be enabled in CTRL_REG5_G:
-
-  /*Wire.beginTransmission(LSM9DS0_GYRO_I2C_ADDR);
-  Wire.write(LSM9DS0_CTRL_REG5_G);
-  Wire.write(0b000);
-  Wire.endTransmission(); */
-
-  // Do XM setup as well
   
   // Load Calibration values from Non-Volatile Memory
   X_A_CalibrationVal = EEPROM.readFloat(MEM_ADDR_X_A_CALIBRATION_VAL);
@@ -97,52 +83,18 @@ void LSM9DS0_ReadGyroscopeData() {
   int16_t Z_G_Data;
 
   Wire.beginTransmission(LSM9DS0_GYRO_I2C_ADDR);
-  Wire.write(LSM9DS0_OUT_X_L_G);
+  Wire.write(LSM9DS0_OUT_GYRO_BURST);
   Wire.endTransmission();
-  Wire.requestFrom(LSM9DS0_GYRO_I2C_ADDR, 1);
+  Wire.requestFrom(LSM9DS0_GYRO_I2C_ADDR, 6);
   if (Wire.available()) {
     Out_X_G_Reg[0] = Wire.read();
-  }
-
-  Wire.beginTransmission(LSM9DS0_GYRO_I2C_ADDR);
-  Wire.write(LSM9DS0_OUT_X_H_G);
-  Wire.endTransmission();
-  Wire.requestFrom(LSM9DS0_GYRO_I2C_ADDR, 1);
-  if (Wire.available()) {
     Out_X_G_Reg[1] = Wire.read();
-  }
-
-  Wire.beginTransmission(LSM9DS0_GYRO_I2C_ADDR);
-  Wire.write(LSM9DS0_OUT_Y_L_G);
-  Wire.endTransmission();
-  Wire.requestFrom(LSM9DS0_GYRO_I2C_ADDR, 1);
-  if (Wire.available()) {
     Out_Y_G_Reg[0] = Wire.read();
-  }
-
-  Wire.beginTransmission(LSM9DS0_GYRO_I2C_ADDR);
-  Wire.write(LSM9DS0_OUT_Y_H_G);
-  Wire.endTransmission();
-  Wire.requestFrom(LSM9DS0_GYRO_I2C_ADDR, 1);
-  if (Wire.available()) {
     Out_Y_G_Reg[1] = Wire.read();
-  }
-
-  Wire.beginTransmission(LSM9DS0_GYRO_I2C_ADDR);
-  Wire.write(LSM9DS0_OUT_Z_L_G);
-  Wire.endTransmission();
-  Wire.requestFrom(LSM9DS0_GYRO_I2C_ADDR, 1);
-  if (Wire.available()) {
     Out_Z_G_Reg[0] = Wire.read();
-  }
-
-  Wire.beginTransmission(LSM9DS0_GYRO_I2C_ADDR);
-  Wire.write(LSM9DS0_OUT_Z_H_G);
-  Wire.endTransmission();
-  Wire.requestFrom(LSM9DS0_GYRO_I2C_ADDR, 1);
-  if (Wire.available()) {
     Out_Z_G_Reg[1] = Wire.read();
   }
+  Wire.endTransmission(true);
 
   X_G_Data = Out_X_G_Reg[1] << 8;
   X_G_Data += Out_X_G_Reg[0];
@@ -180,55 +132,19 @@ void LSM9DS0_ReadAccelerometerData() {
   int16_t X_A_Data;
   int16_t Y_A_Data;
   int16_t Z_A_Data;
-
   Wire.beginTransmission(LSM9DS0_ACCEL_MAG_I2C_ADDR);
-  Wire.write(LSM9DS0_OUT_X_L_A);
+  Wire.write(LSM9DS0_OUT_ACCEL_BURST);
   Wire.endTransmission();
-  Wire.requestFrom(LSM9DS0_ACCEL_MAG_I2C_ADDR, 1);
+  Wire.requestFrom(LSM9DS0_ACCEL_MAG_I2C_ADDR, 6);
   if (Wire.available()) {
     Out_X_A_Reg[0] = Wire.read();
-  }
-
-  Wire.beginTransmission(LSM9DS0_ACCEL_MAG_I2C_ADDR);
-  Wire.write(LSM9DS0_OUT_X_H_A);
-  Wire.endTransmission();
-  Wire.requestFrom(LSM9DS0_ACCEL_MAG_I2C_ADDR, 1);
-  if (Wire.available()) {
     Out_X_A_Reg[1] = Wire.read();
-  }
-
-  Wire.beginTransmission(LSM9DS0_ACCEL_MAG_I2C_ADDR);
-  Wire.write(LSM9DS0_OUT_Y_L_A);
-  Wire.endTransmission();
-  Wire.requestFrom(LSM9DS0_ACCEL_MAG_I2C_ADDR, 1);
-  if (Wire.available()) {
     Out_Y_A_Reg[0] = Wire.read();
-  }
-
-  Wire.beginTransmission(LSM9DS0_ACCEL_MAG_I2C_ADDR);
-  Wire.write(LSM9DS0_OUT_Y_H_A);
-  Wire.endTransmission();
-  Wire.requestFrom(LSM9DS0_ACCEL_MAG_I2C_ADDR, 1);
-  if (Wire.available()) {
     Out_Y_A_Reg[1] = Wire.read();
-  }
-
-  Wire.beginTransmission(LSM9DS0_ACCEL_MAG_I2C_ADDR);
-  Wire.write(LSM9DS0_OUT_Z_L_A);
-  Wire.endTransmission();
-  Wire.requestFrom(LSM9DS0_ACCEL_MAG_I2C_ADDR, 1);
-  if (Wire.available()) {
     Out_Z_A_Reg[0] = Wire.read();
-  }
-
-  Wire.beginTransmission(LSM9DS0_ACCEL_MAG_I2C_ADDR);
-  Wire.write(LSM9DS0_OUT_Z_H_A);
-  Wire.endTransmission();
-  Wire.requestFrom(LSM9DS0_ACCEL_MAG_I2C_ADDR, 1);
-  if (Wire.available()) {
     Out_Z_A_Reg[1] = Wire.read();
   }
-
+  Wire.endTransmission(true);
   
   X_A_Data = Out_X_A_Reg[1] << 8;
   X_A_Data += Out_X_A_Reg[0];
@@ -362,7 +278,7 @@ void LSM9DS0_ReadMagnetometerData() {
   int16_t X_M_Data;
   int16_t Y_M_Data;
   int16_t Z_M_Data;
-  unsigned long usme = micros();
+
   Wire.beginTransmission(LSM9DS0_ACCEL_MAG_I2C_ADDR);
   Wire.write(LSM9DS0_OUT_MAG_BURST);
   Wire.endTransmission();
@@ -375,46 +291,7 @@ void LSM9DS0_ReadMagnetometerData() {
     Out_Z_M_Reg[0] = Wire.read();
     Out_Z_M_Reg[1] = Wire.read();
   }
-
-  /*Wire.beginTransmission(LSM9DS0_ACCEL_MAG_I2C_ADDR);
-  Wire.write(LSM9DS0_OUT_X_H_M);
-  Wire.endTransmission();
-  Wire.requestFrom(LSM9DS0_ACCEL_MAG_I2C_ADDR, 1);
-  if (Wire.available()) {
-    Out_X_M_Reg[1] = Wire.read();
-  }
-
-  Wire.beginTransmission(LSM9DS0_ACCEL_MAG_I2C_ADDR);
-  Wire.write(LSM9DS0_OUT_Y_L_M);
-  Wire.endTransmission();
-  Wire.requestFrom(LSM9DS0_ACCEL_MAG_I2C_ADDR, 1);
-  if (Wire.available()) {
-    Out_Y_M_Reg[0] = Wire.read();
-  }
-
-  Wire.beginTransmission(LSM9DS0_ACCEL_MAG_I2C_ADDR);
-  Wire.write(LSM9DS0_OUT_Y_H_M);
-  Wire.endTransmission();
-  Wire.requestFrom(LSM9DS0_ACCEL_MAG_I2C_ADDR, 1);
-  if (Wire.available()) {
-    Out_Y_M_Reg[1] = Wire.read();
-  }
-
-  Wire.beginTransmission(LSM9DS0_ACCEL_MAG_I2C_ADDR);
-  Wire.write(LSM9DS0_OUT_Z_L_M);
-  Wire.endTransmission();
-  Wire.requestFrom(LSM9DS0_ACCEL_MAG_I2C_ADDR, 1);
-  if (Wire.available()) {
-    Out_Z_M_Reg[0] = Wire.read();
-  }
-
-  Wire.beginTransmission(LSM9DS0_ACCEL_MAG_I2C_ADDR);
-  Wire.write(LSM9DS0_OUT_Z_H_M);
-  Wire.endTransmission();
-  Wire.requestFrom(LSM9DS0_ACCEL_MAG_I2C_ADDR, 1);
-  if (Wire.available()) {
-    Out_Z_M_Reg[1] = Wire.read();
-  } */
+  Wire.endTransmission(true);
 
   X_M_Data = Out_X_M_Reg[1] << 8;
   X_M_Data += Out_X_M_Reg[0];
@@ -435,7 +312,7 @@ void LSM9DS0_ReadMagnetometerData() {
 
 /*---------------------------------------------------------
     
-    LSM9DS0_ReadMagnetometerData()
+    LSM9DS0_CalculateHeading()
     
       Calculates heading based off of magnetometer data.
       0-360 degree heading scale.
@@ -465,7 +342,7 @@ float LSM9DS0_CalculateHeading() {
     headingInDegrees = 360.0 - headingInDegrees;
   }
 
-  //Serial.print("  X gauss: "); Serial.print(M_Data.X_FieldInGauss); Serial.print("  Y gauss: "); Serial.print(M_Data.Y_FieldInGauss); Serial.print("   "); Serial.println(headingInDegrees);
+  //Serial.print("  X gauss: "); Serial.print(MagData.X_FieldInGauss); Serial.print("  Y gauss: "); Serial.print(MagData.Y_FieldInGauss); Serial.print("   "); Serial.println(headingInDegrees);
 
   return headingInDegrees;
 }
