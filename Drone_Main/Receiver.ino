@@ -31,13 +31,13 @@ volatile unsigned long    CH4PulseBegin = 0;
 volatile unsigned long    CH4PulseEnd = 0;
 volatile bool             CH4NewPulseDurAvailable = false;
 
-volatile unsigned long    CH5PulseBegin = 0;
+/* volatile unsigned long    CH5PulseBegin = 0;
 volatile unsigned long    CH5PulseEnd = 0;
 volatile bool             CH5NewPulseDurAvailable = false;
 
 volatile unsigned long    CH6PulseBegin = 0;
 volatile unsigned long    CH6PulseEnd = 0;
-volatile bool             CH6NewPulseDurAvailable = false;
+volatile bool             CH6NewPulseDurAvailable = false; */
 
 volatile unsigned long    CH7PulseBegin = 0;
 volatile unsigned long    CH7PulseEnd = 0;
@@ -51,9 +51,9 @@ volatile unsigned long    CH9PulseBegin = 0;
 volatile unsigned long    CH9PulseEnd = 0;
 volatile bool             CH9NewPulseDurAvailable = false;
 
-volatile unsigned long    CH10PulseBegin = 0;
+/* volatile unsigned long    CH10PulseBegin = 0;
 volatile unsigned long    CH10PulseEnd = 0;
-volatile bool             CH10NewPulseDurAvailable = false;
+volatile bool             CH10NewPulseDurAvailable = false; */
 
 unsigned long curTime = 0;                      /* Current time, in ms                        */
 // Ints to represent controller's stick positions, 3 position switch, and potentiometer values
@@ -108,7 +108,7 @@ void IRAM_ATTR CH4Interrupt() {
     CH4NewPulseDurAvailable = true;
   }
 }
-void IRAM_ATTR CH5Interrupt() {
+/* void IRAM_ATTR CH5Interrupt() {
   if (digitalRead(CH5) == HIGH) {
     // start measuring
     CH5PulseBegin = micros();
@@ -129,7 +129,7 @@ void IRAM_ATTR CH6Interrupt() {
     CH6PulseEnd = micros();
     CH6NewPulseDurAvailable = true;
   }
-}
+} */
 void IRAM_ATTR CH7Interrupt() {
   if (digitalRead(CH7) == HIGH) {
     // start measuring
@@ -163,7 +163,7 @@ void IRAM_ATTR CH9Interrupt() {
     CH9NewPulseDurAvailable = true;
   }
 }
-void IRAM_ATTR CH10Interrupt() {
+/* void IRAM_ATTR CH10Interrupt() {
   if (digitalRead(CH10) == HIGH) {
     // start measuring
     CH10PulseBegin = micros();
@@ -173,7 +173,7 @@ void IRAM_ATTR CH10Interrupt() {
     CH10PulseEnd = micros();
     CH10NewPulseDurAvailable = true;
   }
-}
+} */
 
 
 void Receiver_Begin() {
@@ -183,24 +183,24 @@ void Receiver_Begin() {
   pinMode(CH2, INPUT);
   pinMode(CH3, INPUT);
   pinMode(CH4, INPUT);
-  pinMode(CH5, INPUT);
-  pinMode(CH6, INPUT);
+  //pinMode(CH5, INPUT);
+  //pinMode(CH6, INPUT);
   pinMode(CH7, INPUT);
   pinMode(CH8, INPUT);
   pinMode(CH9, INPUT);
-  pinMode(CH10, INPUT);
+  //pinMode(CH10, INPUT);
 
 // Attach interrupt callback functions to be called on high-low transitions.
   attachInterrupt(digitalPinToInterrupt(CH1), CH1Interrupt, CHANGE);
   attachInterrupt(digitalPinToInterrupt(CH2), CH2Interrupt, CHANGE);
   attachInterrupt(digitalPinToInterrupt(CH3), CH3Interrupt, CHANGE);
   attachInterrupt(digitalPinToInterrupt(CH4), CH4Interrupt, CHANGE);
-  attachInterrupt(digitalPinToInterrupt(CH5), CH5Interrupt, CHANGE);
-  attachInterrupt(digitalPinToInterrupt(CH6), CH6Interrupt, CHANGE);
+  //attachInterrupt(digitalPinToInterrupt(CH5), CH5Interrupt, CHANGE);
+  //attachInterrupt(digitalPinToInterrupt(CH6), CH6Interrupt, CHANGE);
   attachInterrupt(digitalPinToInterrupt(CH7), CH7Interrupt, CHANGE);
   attachInterrupt(digitalPinToInterrupt(CH8), CH8Interrupt, CHANGE);
   attachInterrupt(digitalPinToInterrupt(CH9), CH9Interrupt, CHANGE);
-  attachInterrupt(digitalPinToInterrupt(CH10), CH10Interrupt, CHANGE);
+  //attachInterrupt(digitalPinToInterrupt(CH10), CH10Interrupt, CHANGE);
 
 }
 
@@ -219,35 +219,35 @@ void updateReceiverData() {
   if (CH1NewPulseDurAvailable) {                        // If a high->low transition has happened on the channel
     CH1NewPulseDurAvailable = false;                      // Reset flag
     if ((CH1PulseEnd - CH1PulseBegin) > 0) {                // If we have properly measured a pulse/don't have a stale PulseEnd value for some reason
-      receiverData.ch1Value = map((CH1PulseEnd - CH1PulseBegin), 1000, 2000, -100, 100);   // Map the pulse width to a value.
+      receiverData.ch1Value = map((CH1PulseEnd - CH1PulseBegin), 993, 1992, -200, 200);   // Map the pulse width to a value.
     }
     else {
-      Serial.println((CH1PulseEnd - CH1PulseBegin));
+      //Serial.println((CH1PulseEnd - CH1PulseBegin));
     }
     //Serial.println(CH1PulseEnd - CH1PulseBegin);
   }
   if (CH2NewPulseDurAvailable) {
     CH2NewPulseDurAvailable = false;
     if ((CH2PulseEnd - CH2PulseBegin) < 2000 && (CH2PulseEnd - CH2PulseBegin) > 0) {
-      receiverData.ch2Value = map((CH2PulseEnd - CH2PulseBegin), 0, 3302, 0, 255);
+      receiverData.ch2Value = map((CH2PulseEnd - CH2PulseBegin), 990, 1990, -200, 200);
     }
     //Serial.println(CH2PulseEnd - CH2PulseBegin);
   }
   if (CH3NewPulseDurAvailable) {
     CH3NewPulseDurAvailable = false;
     if ((CH3PulseEnd - CH3PulseBegin) > 0) {
-      receiverData.ch3Value = map((CH3PulseEnd - CH3PulseBegin), 1000, 2000, -100, 100);
+      receiverData.ch3Value = map((CH3PulseEnd - CH3PulseBegin), 994, 1991, 0, PWM_MAX_VALUE);
     }
     //Serial.println(CH3PulseEnd - CH3PulseBegin);
   }
   if (CH4NewPulseDurAvailable) {
     CH4NewPulseDurAvailable = false;
     if ((CH4PulseEnd - CH4PulseBegin) > 0) {
-      receiverData.ch4Value = map((CH4PulseEnd - CH4PulseBegin), 1000, 2000, -100, 100);
+      receiverData.ch4Value = map((CH4PulseEnd - CH4PulseBegin), 993, 1993, -200, 200);
     }
     //Serial.println(CH4PulseEnd - CH4PulseBegin);
   }
-  if (CH5NewPulseDurAvailable) {
+ /* if (CH5NewPulseDurAvailable) {
     CH5NewPulseDurAvailable = false;
     if ((CH5PulseEnd - CH5PulseBegin) > 0) {
       receiverData.ch5Value = map((CH5PulseEnd - CH5PulseBegin), 1000, 2000, 0, 100);
@@ -257,10 +257,10 @@ void updateReceiverData() {
   if (CH6NewPulseDurAvailable) {
     CH6NewPulseDurAvailable = false;
     if ((CH6PulseEnd - CH6PulseBegin) > 0) {
-      receiverData.ch6Value = map((CH6PulseEnd - CH6PulseBegin), 1000, 2000, -100, 100);
+      receiverData.ch6Value = map((CH6PulseEnd - CH6PulseBegin), 995, 1995, 0, 100);
     }
     //Serial.println(CH6PulseEnd - CH6PulseBegin);
-  }
+  } */
   if (CH7NewPulseDurAvailable) {
     CH7NewPulseDurAvailable = false;
     if ((CH7PulseEnd - CH7PulseBegin) > 0) {
@@ -300,7 +300,7 @@ void updateReceiverData() {
     }
     //Serial.println(CH9PulseEnd - CH9PulseBegin);
   }
-  if (CH10NewPulseDurAvailable) {
+ /* if (CH10NewPulseDurAvailable) {
     CH10NewPulseDurAvailable = false;
     if ((CH10PulseEnd - CH10PulseBegin) > 0) {
       if ((CH10PulseEnd - CH10PulseBegin) < 1500) {
@@ -311,8 +311,8 @@ void updateReceiverData() {
       }
     }
     //Serial.println(CH10PulseEnd - CH10PulseBegin);
-  }
-  //Serial.print("CH1: "); Serial.print(receiverData.ch1Value); Serial.print(" CH2: "); Serial.print(receiverData.ch2Value); Serial.print(" CH3: "); Serial.print(receiverData.ch3Value); Serial.print(" CH4: "); Serial.print(receiverData.ch4Value); Serial.print(" CH5: "); Serial.println(receiverData.ch5Value); 
-  //Serial.print(" CH6: "); Serial.print(receiverData.ch6Value); Serial.print(" CH7: "); Serial.print(receiverData.ch7Value); Serial.print(" CH8: "); Serial.print(receiverData.ch8Value); Serial.print(" CH9: "); Serial.print(receiverData.ch9Value); Serial.print(" CH10: "); Serial.print(receiverData.ch10Value); 
+  } */
+  //Serial.print("CH1: "); Serial.print(receiverData.ch1Value); Serial.print(" CH2: "); Serial.print(receiverData.ch2Value); Serial.print(" CH3: "); Serial.print(receiverData.ch3Value); Serial.print(" CH4: "); Serial.print(receiverData.ch4Value); /* Serial.print(" CH5: "); Serial.print(receiverData.ch5Value); 
+  //Serial.print(" CH6: "); Serial.print(receiverData.ch6Value); */ Serial.print(" CH7: "); Serial.print(receiverData.ch7Value); Serial.print(" CH8: "); Serial.print(receiverData.ch8Value); Serial.print(" CH9: "); Serial.print(receiverData.ch9Value); /* Serial.print(" CH10: "); Serial.println(receiverData.ch10Value); */ 
 
 }

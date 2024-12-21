@@ -1,19 +1,27 @@
-#include "Wire.h"
+#include <Wire.h>
+#include <SoftwareSerial.h>
+#include <TinyGPSPlus.h>
 #include "EEPROM.h"
 #include "Drone_BMP280.h"
 #include "Drone_LSM9DS0.h"
 #include "Drone_EEPROM.h"
 #include "Drone_Receiver.h"
+#include "Drone_Mode_Manager.h"
 
 TaskHandle_t CORE0;
 TaskHandle_t CORE1;
 
+// Core 0 Data
+struct ReceiverData       receiverData;
+struct ThrottleOutput     throttleOutput;
+
+// Core 1 Data
 struct LSM9DS0_GyroData   GyroData;
 struct LSM9DS0_AccelData  AccelData;
 struct LSM9DS0_MagData    MagData;
 struct Pitch_Heading_Roll FlightData;
-struct ReceiverData       receiverData;
 float                     Baro_Altitude;
+double                    GPS_Altitude;
 
 
 void setup() {
@@ -58,18 +66,19 @@ void setup() {
 --------------------------------------------------------------*/
 
 void CORE0_PROCEDURE(void * pvParameters) {
-  // Core 0 Setup 
+  //********Core 0 Setup******** 
   setCpuFrequencyMhz(240);
+
+  // Setup Motor Output
+  Mode_Manager_Begin();
+  // Setup Receiver
   Receiver_Begin();
 
-  unsigned long us = 0;
-  // Core 0 Superloop
+  //********Core 0 Superloop********
   for (;;) {
 
-    Serial.println((micros() - us));
-    us = micros();
     updateReceiverData();
-    delay(1);
+    Mode_Manager();
   }
 }
 
@@ -93,22 +102,38 @@ void CORE0_PROCEDURE(void * pvParameters) {
 --------------------------------------------------------------*/
 
 void CORE1_PROCEDURE(void * pvParameters) {
-  // Core 1 Setup
+  //********Core 1 Setup********
   setCpuFrequencyMhz(240);
 
+  // Setup I2C
   Wire.begin();
   Wire.setClock(400000);    //4KHz (I2C fast mode) 
-  BMP280_Begin();
-  LSM9DS0_Begin();
-  unsigned long usLoopTime = 0;
 
-  // Core 1 Superloop
+  // Setup GPS
+  TinyGPSPlus gps;
+  SoftwareSerial ss(17, 18);
+  ss.begin(9600);
+
+  // Setup BMP280 (Thermometer/Barometer)
+  BMP280_Begin();
+
+  // Setup LSM9DS0 (Gyroscope/Accelerometer/Magnetometer)
+  LSM9DS0_Begin();
+
+  double lat, lng;
+  unsigned long us = 0;
+
+  //********Core 1 Superloop********
   for(;;){
-  
+
     Baro_Altitude = BMP280_ReadAltitude(1018.3); // Will likely need some way to load hPa for each flight
     LSM9DS0_ReadAccelerometerData();
     LSM9DS0_ReadGyroscopeData();
     LSM9DS0_CalculateFlightData();
+
+    lat = gps.location.lat(); 
+    lng = gps.location.lng();
+    
 
   }
 } 
