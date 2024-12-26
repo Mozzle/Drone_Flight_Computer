@@ -1,12 +1,60 @@
+/*--------------------------------------------------------------
+
+  MICROCONTROLLER PINOUT
+
+  MICROCONTROLLER: ESP32 (38 Pin)
+
+  ESP32 To RC Receiver
+    PIN 4  --> Channel 9
+    PIN 13 --> Channel 8
+    PIN 27 --> Channel 7
+    PIN 32 --> Channel 3
+    PIN 33 --> Channel 4
+    PIN 34 --> Channel 1
+    Pin 35 --> Channel 2
+
+  ESP32 To I2C Bus (LSM9DS0, BMP280)
+    PIN 21 --> SDA 
+    PIN 22 --> SCL 
+
+  ESP32 To GT-U7 GPS Module
+    PIN 18 (TX) --> RX
+    PIN 17 (RX) --> TX
+
+  ESP32 To Motor ESCs
+    PIN 25 --> Front Left Motor
+    PIN 26 --> Front Right Motor
+    PIN 16 --> Back Left Motor
+    PIN 19 --> Back Right Motor
+
+
+--------------------------------------------------------------*/
+
+
+/*--------------------------------------------------------------
+        EXTERNAL LIBRARY INCLUDES
+--------------------------------------------------------------*/
+
 #include <Wire.h>
 #include <SoftwareSerial.h>
 #include <TinyGPSPlus.h>
 #include "EEPROM.h"
+
+
+/*--------------------------------------------------------------
+        INTERNAL HEADER INCLUDES
+--------------------------------------------------------------*/
+
 #include "Drone_BMP280.h"
 #include "Drone_LSM9DS0.h"
 #include "Drone_EEPROM.h"
 #include "Drone_Receiver.h"
 #include "Drone_Mode_Manager.h"
+
+
+/*--------------------------------------------------------------
+        GLOBAL VARIABLES
+--------------------------------------------------------------*/
 
 TaskHandle_t CORE0;
 TaskHandle_t CORE1;
@@ -23,6 +71,13 @@ struct Pitch_Heading_Roll FlightData;
 float                     Baro_Altitude;
 double                    GPS_Altitude;
 
+/*----------------------------------------------------------------------
+
+    setup()
+
+      Main setup function for the drone. Entry point of entire program.
+
+----------------------------------------------------------------------*/
 
 void setup() {
   Serial.begin(115200);

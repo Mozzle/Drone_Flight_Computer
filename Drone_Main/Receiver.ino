@@ -2,7 +2,12 @@
     
     Receiver.ino
     
-      **WRITE ME**
+      This file uses a non-blocking approach to measuring
+      the incoming PWM signals from the RC receiver. The
+      measured pulse-widths are mapped to a value range on
+      a per-channel basis. The main output of this file is
+      the receiverData struct. The Mode_Manager.ino
+      file is the main consumer of the receiverData data. 
 
 ---------------------------------------------------------*/
 
@@ -175,6 +180,13 @@ void IRAM_ATTR CH9Interrupt() {
   }
 } */
 
+/*----------------------------------------------------------------------
+
+    Receiver_Begin()
+
+      Initialize pins and atttach interrupt functions for Receiver.ino
+
+----------------------------------------------------------------------*/
 
 void Receiver_Begin() {
 
