@@ -82,9 +82,9 @@ struct LSM9DS0_AccelData {
 };
 
 struct LSM9DS0_MagData {
-  float X_FieldInGauss;
-  float Y_FieldInGauss;
-  float Z_FieldInGauss;
+  float X_FieldIn_uT;
+  float Y_FieldIn_uT;
+  float Z_FieldIn_uT;
 };
 
 struct Pitch_Heading_Roll {

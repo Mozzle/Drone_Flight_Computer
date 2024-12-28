@@ -39,6 +39,7 @@
 #include <SoftwareSerial.h>
 #include <TinyGPSPlus.h>
 #include "EEPROM.h"
+#include <Adafruit_AHRS_Mahony.h>
 
 
 /*--------------------------------------------------------------
@@ -134,6 +135,7 @@ void CORE0_PROCEDURE(void * pvParameters) {
 
     updateReceiverData();
     Mode_Manager();
+    delay(1); // DELETE ME LATER
   }
 }
 
@@ -180,10 +182,12 @@ void CORE1_PROCEDURE(void * pvParameters) {
 
   //********Core 1 Superloop********
   for(;;){
-
+    //Serial.println(micros() - us);
+    //us = micros();
     Baro_Altitude = BMP280_ReadAltitude(1018.3); // Will likely need some way to load hPa for each flight
     LSM9DS0_ReadAccelerometerData();
     LSM9DS0_ReadGyroscopeData();
+    LSM9DS0_ReadMagnetometerData();
     LSM9DS0_CalculateFlightData();
 
     lat = gps.location.lat(); 

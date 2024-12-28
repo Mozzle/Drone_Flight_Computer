@@ -20,9 +20,9 @@ float Z_G_CalibrationVal = 0;
 
 unsigned long last_PHR_Measurement = 0;
 
-float angleX = 0;
-float angleY = 0;
-float angleZ = 0;
+// Mahony Filter used to calculate pitch, roll, and heading in a dynamic 
+// acceleration environment.
+Adafruit_Mahony filter;
 
 void LSM9DS0_Begin() {
 
@@ -60,6 +60,13 @@ void LSM9DS0_Begin() {
   Y_G_CalibrationVal = EEPROM.readFloat(MEM_ADDR_Y_G_CALIBRATION_VAL);
   Z_G_CalibrationVal = EEPROM.readFloat(MEM_ADDR_Z_G_CALIBRATION_VAL);
   //Serial.print("Gyroscope Calibration: X: "); Serial.print(X_G_CalibrationVal); Serial.print(" Y: "); Serial.print(Y_G_CalibrationVal); Serial.print(" Z: "); Serial.println(Z_G_CalibrationVal);
+
+  // Set PI gains for Mahony filter. Values experimentally acquired. (NOTE: WILL ALMOST SURELY NEED TO UPDATE THESE VALUES)
+  filter.setKp(12);
+  filter.setKi(5);
+
+  // Initialize filter with data update rate in Hz.
+  filter.begin(100);
 
 }
 
@@ -266,7 +273,7 @@ void LSM9DS0_CalibrateAccelerometer() {
     LSM9DS0_ReadMagnetometerData()
     
       Reads out magnetometer X, Y, and Z data into a
-      LSM9DS0_MagData struct. Units are in Gauss.
+      LSM9DS0_MagData struct. Units are in microTesla.
 
 ---------------------------------------------------------*/
 
@@ -302,11 +309,11 @@ void LSM9DS0_ReadMagnetometerData() {
   Z_M_Data = Out_Z_M_Reg[1] << 8;
   Z_M_Data += Out_Z_M_Reg[0];
 
-  MagData.X_FieldInGauss = (((float) X_M_Data / 32767.0) * MAGNETOMETER_RANGE);
-  MagData.Y_FieldInGauss = (((float) Y_M_Data / 32767.0) * MAGNETOMETER_RANGE);
-  MagData.Z_FieldInGauss = (((float) Z_M_Data / 32767.0) * MAGNETOMETER_RANGE);
+  MagData.X_FieldIn_uT = (((float) X_M_Data / 32767.0) * MAGNETOMETER_RANGE * 100);
+  MagData.Y_FieldIn_uT = (((float) Y_M_Data / 32767.0) * MAGNETOMETER_RANGE * 100);
+  MagData.Z_FieldIn_uT = (((float) Z_M_Data / 32767.0) * MAGNETOMETER_RANGE * 100);
 
-  //Serial.print("X: "); Serial.print(X_M_Data); Serial.print("  Y: "); Serial.print(Y_M_Data); Serial.print("  Z: "); Serial.print(Z_M_Data); Serial.print("  X gauss: "); Serial.print(MagData.X_FieldInGauss); Serial.print("  Y gauss: "); Serial.print(MagData.Y_FieldInGauss); Serial.print("  Z gauss: "); Serial.println(MagData.Z_FieldInGauss); 
+  //Serial.print("X: "); Serial.print(X_M_Data); Serial.print("  Y: "); Serial.print(Y_M_Data); Serial.print("  Z: "); Serial.print(Z_M_Data); Serial.print("  X uT: "); Serial.print(MagData.X_FieldIn_uT); Serial.print("  Y uT: "); Serial.print(MagData.Y_FieldIn_uT); Serial.print("  Z uT: "); Serial.println(MagData.Z_FieldIn_uT); 
 
 }
 
@@ -323,18 +330,18 @@ float LSM9DS0_CalculateHeading() {
   float headingInDegrees;
   LSM9DS0_ReadMagnetometerData();
 
-  headingInDegrees = atan((double)(MagData.X_FieldInGauss/MagData.Y_FieldInGauss)) * RADIANS_TO_DEGREE_CONV;
+  headingInDegrees = atan((double)(MagData.X_FieldIn_uT/MagData.Y_FieldIn_uT)) * RADIANS_TO_DEGREE_CONV;
 
   // If in heading range of 0-90
-  if (MagData.X_FieldInGauss < 0 && MagData.Y_FieldInGauss > 0) {
+  if (MagData.X_FieldIn_uT < 0 && MagData.Y_FieldIn_uT > 0) {
     headingInDegrees = 0.0 - headingInDegrees;
   }
   // If in heading range of 90-180
-  else if (MagData.X_FieldInGauss < 0 && MagData.Y_FieldInGauss < 0) {
+  else if (MagData.X_FieldIn_uT < 0 && MagData.Y_FieldIn_uT < 0) {
     headingInDegrees = 180.0 - headingInDegrees;
   }
   // If in heading range of 180-270
-  else if (MagData.X_FieldInGauss > 0 && MagData.Y_FieldInGauss < 0) {
+  else if (MagData.X_FieldIn_uT > 0 && MagData.Y_FieldIn_uT < 0) {
     headingInDegrees = 180 - headingInDegrees ;
   }
   // If in heading range of 270-360
@@ -342,7 +349,7 @@ float LSM9DS0_CalculateHeading() {
     headingInDegrees = 360.0 - headingInDegrees;
   }
 
-  //Serial.print("  X gauss: "); Serial.print(MagData.X_FieldInGauss); Serial.print("  Y gauss: "); Serial.print(MagData.Y_FieldInGauss); Serial.print("   "); Serial.println(headingInDegrees);
+  //Serial.print("  X uT: "); Serial.print(MagData.X_FieldIn_uT); Serial.print("  Y uT: "); Serial.print(MagData.Y_FieldIn_uT); Serial.print("   "); Serial.println(headingInDegrees);
 
   return headingInDegrees;
 }
@@ -353,18 +360,13 @@ float LSM9DS0_CalculateHeading() {
     
       Calculates pitch, heading, and roll based off of 
       Accelerometer,Gyroscope, and Magnetometer data.
-      
-      
-      **WIP** function not working properly right now
 
 ---------------------------------------------------------*/
 
 void LSM9DS0_CalculateFlightData() {
 
-  float newHeading = LSM9DS0_CalculateHeading();
-
-  float angleAccX, angleAccY;
-  float sgZ = AccelData.Z_AccelInG<0 ? -1 : 1;
+  //float angleAccX, angleAccY;
+  /* float sgZ = AccelData.Z_AccelInG<0 ? -1 : 1;
 
   angleAccX = atan2(AccelData.Y_AccelInG, sgZ*sqrt(AccelData.Z_AccelInG*AccelData.Z_AccelInG + AccelData.X_AccelInG*AccelData.X_AccelInG)) * RADIANS_TO_DEGREE_CONV;
   angleAccY = - atan2(AccelData.X_AccelInG,   sqrt(AccelData.Z_AccelInG*AccelData.Z_AccelInG + AccelData.Y_AccelInG*AccelData.Y_AccelInG)) * RADIANS_TO_DEGREE_CONV;
@@ -375,7 +377,22 @@ void LSM9DS0_CalculateFlightData() {
 
   angleX = angleAccX + (angleX + GyroData.X_DegPerSec*dt - angleAccX);
   angleY = angleAccY + (angleY + GyroData.Y_DegPerSec*dt - angleAccY);
-  angleZ = newHeading;
+  angleZ = newHeading; */
 
-  //Serial.print("angleAccX: "); Serial.print(angleAccX); Serial.print(" angleAccY: "); Serial.print(angleAccY); Serial.print(" angleX: "); Serial.print(angleX); Serial.print(" angleY: "); Serial.print(angleY); Serial.print(" angleZ: "); Serial.println(angleZ); 
+
+
+/*
+  FlightData.pitch = atan2(AccelData.Y_AccelInG, AccelData.Z_AccelInG)  * RADIANS_TO_DEGREE_CONV;
+  FlightData.roll = -asin(AccelData.X_AccelInG)  * RADIANS_TO_DEGREE_CONV;
+  
+  FlightData.heading = LSM9DS0_CalculateHeading(); */
+
+  filter.update(GyroData.X_DegPerSec, GyroData.Y_DegPerSec, GyroData.Z_DegPerSec, AccelData.X_AccelInG, AccelData.Y_AccelInG, AccelData.Z_AccelInG, MagData.X_FieldIn_uT, MagData.Y_FieldIn_uT, MagData.Z_FieldIn_uT);
+  FlightData.pitch = filter.getRoll();
+  FlightData.roll = filter.getPitch();
+  FlightData.heading = filter.getYaw();
+
+
+
+  //Serial.print(" pitch: "); Serial.print(FlightData.pitch); Serial.print(" roll: "); Serial.print(FlightData.roll); Serial.print(" heading: "); Serial.println(FlightData.heading); 
 }
