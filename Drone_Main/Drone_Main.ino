@@ -71,6 +71,8 @@ struct LSM9DS0_MagData    MagData;
 struct Pitch_Heading_Roll FlightData;
 float                     Baro_Altitude;
 double                    GPS_Altitude;
+double                    GPS_Lat;
+double                    GPS_Lng;
 
 /*----------------------------------------------------------------------
 
@@ -177,8 +179,7 @@ void CORE1_PROCEDURE(void * pvParameters) {
   // Setup LSM9DS0 (Gyroscope/Accelerometer/Magnetometer)
   LSM9DS0_Begin();
 
-  double lat, lng;
-  unsigned long us = 0;
+  //unsigned long us = 0;
 
   //********Core 1 Superloop********
   for(;;){
@@ -190,10 +191,12 @@ void CORE1_PROCEDURE(void * pvParameters) {
     LSM9DS0_ReadMagnetometerData();
     LSM9DS0_CalculateFlightData();
 
-    lat = gps.location.lat(); 
-    lng = gps.location.lng();
-    
+    GPS_Lat = gps.location.lat(); 
+    GPS_Lng = gps.location.lng();
+    GPS_Altitude = gps.altitude.meters();
 
+    //Serial.println(gps.date.year());
+    
   }
 } 
 

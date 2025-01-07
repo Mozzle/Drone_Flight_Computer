@@ -1,7 +1,7 @@
 #define PWM_FREQUENCY			500
 #define PWM_RESOLUTION_BITS		11
 #define PWM_MAX_VALUE			((1 << PWM_RESOLUTION_BITS) - 1)
-#define PWM_MIN_VALUE			(PWM_MAX_VALUE / 2)
+#define PWM_MIN_VALUE			(PWM_MAX_VALUE / 2) - 200
 
 #define PIN_MOTOR_FL			25
 #define PIN_MOTOR_FR			26

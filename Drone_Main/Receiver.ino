@@ -248,7 +248,7 @@ void updateReceiverData() {
   if (CH3NewPulseDurAvailable) {
     CH3NewPulseDurAvailable = false;
     if ((CH3PulseEnd - CH3PulseBegin) > 0) {
-      receiverData.ch3Value = map((CH3PulseEnd - CH3PulseBegin), 994, 1991, PWM_MIN_VALUE, PWM_MAX_VALUE);
+      receiverData.ch3Value = map((CH3PulseEnd - CH3PulseBegin), 994, 1981, PWM_MIN_VALUE, PWM_MAX_VALUE);
     }
     //Serial.println(CH3PulseEnd - CH3PulseBegin);
   }

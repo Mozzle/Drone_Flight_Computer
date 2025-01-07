@@ -18,6 +18,26 @@ float X_G_CalibrationVal = 0;
 float Y_G_CalibrationVal = 0;
 float Z_G_CalibrationVal = 0;
 
+// MAGNETOMETER CALIBRATION VALUES ACQUIRED VIA MotionCal
+// https://www.pjrc.com/store/prop_shield.html
+// https://www.youtube.com/watch?v=cGI8mrIanpk
+
+// Hard Iron X, Y, Z calibration values
+const float MAG_HARD_IRON[3] = {
+  -1.12, 5.42, 4.74
+};
+
+const float MAG_SOFT_IRON[3][3] = {
+  { 0.990, -0.065, 0.011},
+  {-0.065,  0.960, 0.005},
+  { 0.011,  0.005, 1.056}
+};
+
+
+// BASED OFF OF MY GEOGRAPHIC LOCATION. VALUE CALCULATED AT:
+// https://www.ngdc.noaa.gov/geomag/calculators/magcalc.shtml#declination
+const float MAG_DECLINATION = -0.94;
+
 unsigned long last_PHR_Measurement = 0;
 
 // Mahony Filter used to calculate pitch, roll, and heading in a dynamic 
@@ -62,11 +82,11 @@ void LSM9DS0_Begin() {
   //Serial.print("Gyroscope Calibration: X: "); Serial.print(X_G_CalibrationVal); Serial.print(" Y: "); Serial.print(Y_G_CalibrationVal); Serial.print(" Z: "); Serial.println(Z_G_CalibrationVal);
 
   // Set PI gains for Mahony filter. Values experimentally acquired. (NOTE: WILL ALMOST SURELY NEED TO UPDATE THESE VALUES)
-  filter.setKp(12);
-  filter.setKi(5);
+  filter.setKp(16);
+  filter.setKi(1.6);
 
   // Initialize filter with data update rate in Hz.
-  filter.begin(100);
+  filter.begin(91);
 
 }
 
@@ -285,6 +305,9 @@ void LSM9DS0_ReadMagnetometerData() {
   int16_t X_M_Data;
   int16_t Y_M_Data;
   int16_t Z_M_Data;
+  float X_M_Hi_Cal;
+  float Y_M_Hi_Cal;
+  float Z_M_Hi_Cal;
 
   Wire.beginTransmission(LSM9DS0_ACCEL_MAG_I2C_ADDR);
   Wire.write(LSM9DS0_OUT_MAG_BURST);
@@ -309,11 +332,26 @@ void LSM9DS0_ReadMagnetometerData() {
   Z_M_Data = Out_Z_M_Reg[1] << 8;
   Z_M_Data += Out_Z_M_Reg[0];
 
-  MagData.X_FieldIn_uT = (((float) X_M_Data / 32767.0) * MAGNETOMETER_RANGE * 100);
-  MagData.Y_FieldIn_uT = (((float) Y_M_Data / 32767.0) * MAGNETOMETER_RANGE * 100);
-  MagData.Z_FieldIn_uT = (((float) Z_M_Data / 32767.0) * MAGNETOMETER_RANGE * 100);
+  // Calculate Hard-Iron compensated magnetometer values
+  X_M_Hi_Cal = (((float) X_M_Data / 32767.0) * MAGNETOMETER_RANGE * 100) - MAG_HARD_IRON[0];
+  Y_M_Hi_Cal = (((float) Y_M_Data / 32767.0) * MAGNETOMETER_RANGE * 100) - MAG_HARD_IRON[1];
+  Z_M_Hi_Cal = (((float) Z_M_Data / 32767.0) * MAGNETOMETER_RANGE * 100) - MAG_HARD_IRON[2];
 
-  //Serial.print("X: "); Serial.print(X_M_Data); Serial.print("  Y: "); Serial.print(Y_M_Data); Serial.print("  Z: "); Serial.print(Z_M_Data); Serial.print("  X uT: "); Serial.print(MagData.X_FieldIn_uT); Serial.print("  Y uT: "); Serial.print(MagData.Y_FieldIn_uT); Serial.print("  Z uT: "); Serial.println(MagData.Z_FieldIn_uT); 
+  // Calculate Hard and Soft-Iron compensated magnetometer values
+  MagData.X_FieldIn_uT = (MAG_SOFT_IRON[0][0] * X_M_Hi_Cal) +
+                         (MAG_SOFT_IRON[0][1] * Y_M_Hi_Cal) +
+                         (MAG_SOFT_IRON[0][2] * Z_M_Hi_Cal);
+
+  MagData.Y_FieldIn_uT = (MAG_SOFT_IRON[1][0] * X_M_Hi_Cal) +
+                         (MAG_SOFT_IRON[1][1] * Y_M_Hi_Cal) +
+                         (MAG_SOFT_IRON[1][2] * Z_M_Hi_Cal);
+
+  MagData.Z_FieldIn_uT = (MAG_SOFT_IRON[2][0] * X_M_Hi_Cal) +
+                         (MAG_SOFT_IRON[2][1] * Y_M_Hi_Cal) +
+                         (MAG_SOFT_IRON[2][2] * Z_M_Hi_Cal);
+
+
+  //Serial.print("X: "); Serial.print(X_M_Hi_Cal + MAG_HARD_IRON[0]); Serial.print("  Y: "); Serial.print(Y_M_Hi_Cal + MAG_HARD_IRON[1]); Serial.print("  Z: "); Serial.print(Z_M_Hi_Cal + MAG_HARD_IRON[2]); Serial.print("  X uT: "); Serial.print(MagData.X_FieldIn_uT); Serial.print("  Y uT: "); Serial.print(MagData.Y_FieldIn_uT); Serial.print("  Z uT: "); Serial.println(MagData.Z_FieldIn_uT); 
 
 }
 
@@ -387,12 +425,17 @@ void LSM9DS0_CalculateFlightData() {
   
   FlightData.heading = LSM9DS0_CalculateHeading(); */
 
-  filter.update(GyroData.X_DegPerSec, GyroData.Y_DegPerSec, GyroData.Z_DegPerSec, AccelData.X_AccelInG, AccelData.Y_AccelInG, AccelData.Z_AccelInG, MagData.X_FieldIn_uT, MagData.Y_FieldIn_uT, MagData.Z_FieldIn_uT);
-  FlightData.pitch = filter.getRoll();
-  FlightData.roll = filter.getPitch();
-  FlightData.heading = filter.getYaw();
+  filter.update(GyroData.Y_DegPerSec, GyroData.X_DegPerSec, GyroData.Z_DegPerSec, AccelData.Y_AccelInG, AccelData.X_AccelInG, AccelData.Z_AccelInG, MagData.Y_FieldIn_uT, MagData.X_FieldIn_uT, MagData.Z_FieldIn_uT);
+  FlightData.pitch = filter.getPitch() * -1;
+  FlightData.roll = filter.getRoll() * -1;
+  float corrected_heading = (filter.getYaw() - 180 - MAG_DECLINATION);
+  if (corrected_heading < 0) {
+    FlightData.heading = (360.0 + corrected_heading);
+  }
+  else {
+    FlightData.heading = corrected_heading;
+  }
 
 
-
-  //Serial.print(" pitch: "); Serial.print(FlightData.pitch); Serial.print(" roll: "); Serial.print(FlightData.roll); Serial.print(" heading: "); Serial.println(FlightData.heading); 
+  Serial.print(" pitch: "); Serial.print(FlightData.pitch); Serial.print(" roll: "); Serial.print(FlightData.roll); Serial.print(" heading: "); Serial.println(FlightData.heading); 
 }
